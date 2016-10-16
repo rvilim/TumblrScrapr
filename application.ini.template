@@ -1,0 +1,9 @@
+; A template for the application.ini to to scrape tumblr and store the results in S3.
+; Rename this file to application.ini (make sure you add it to gitignore!) and replace
+; the placeholders with your own keys.
+
+[tumblr]
+API_KEY=YOUR TUMBLR API KEY
+
+[s3]
+S3_KEY=YOUR S3 KEYS
