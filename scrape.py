@@ -16,6 +16,8 @@ class Scrape():
         s3_client = S3Connection(aws_access_key, aws_secret_key)
         self.bucket = s3_client.get_bucket(s3_bucket)
 
+        self.scraped_ids=set([filename.key[:-5] for filename in self.bucket.get_all_keys() if filename.key[-5:]=='.json'])
+
         self.tag = tag
         self.mean_time = mean_time
 
@@ -61,6 +63,9 @@ class Scrape():
     def upload_content(self, content):
         id = str(content[0])
         post = content[1]
+
+        if id in self.scraped_ids:
+            return
 
         if content[2] is not None:
             img_url = content[2]
