@@ -6,6 +6,7 @@ import json
 from boto.s3.connection import S3Connection
 import time
 import sys
+from Queue import Queue
 
 class Scrape():
 
@@ -16,21 +17,32 @@ class Scrape():
         s3_client = S3Connection(aws_access_key, aws_secret_key)
         self.bucket = s3_client.get_bucket(s3_bucket)
 
-        self.scraped_ids=set([filename.key[:-5] for filename in self.bucket.get_all_keys() if filename.key[-5:]=='.json'])
+        self.scraped_ids = set([filename.key[:-5] for filename in self.bucket.get_all_keys() if filename.key[-5:]=='.json'])
 
         self.tag = tag
         self.mean_time = mean_time
+
+    def input_thread(self):
+        raw_input("Press any key to stop")
+        self.scraping = False
 
     def start(self):
         logging.info("Starting scrape.")
         self.scraping = True
 
-        loader={0:'|', 1:'/', 2:'-', 3: '\\'}
-        i=1
+
+        i = 1
+
+        q=Queue()
+        interrupt_thread = Thread(target=self.input_thread)
+        interrupt_thread.start()
+
         while self.scraping:
+            loader = {0: '|', 1: '/', 2: '-', 3: '\\'}
+
             sys.stdout.write('\r')
             sys.stdout.flush()
-            sys.stdout.write("Scrape #"+str(i)+"   "+loader[i%4])
+            sys.stdout.write("Scrape #" + str(i) + " " + loader[i % 4] + "    Press any key to stop")
 
             t=Thread(target=self.get_posts)
             t.start()
@@ -39,7 +51,7 @@ class Scrape():
             i+=1
 
     def stop(self):
-        logging.info("Stopping scrape.")
+        sys.stdout.flush()
         self.scraping = False
 
     def get_posts(self):
@@ -72,11 +84,9 @@ class Scrape():
             img_filename = img_url.split('/')[-1]
 
             image_key = self.bucket.new_key(id+'/'+img_filename)
-            # print "Downloading: "+img_filename
-            r=requests.get(img_url)
+            r = requests.get(img_url)
 
             if r.status_code == 200:
-                # print "Uploading: " + img_filename
                 json_key = self.bucket.new_key(id + '.json')
                 json_key.set_contents_from_string(json.dumps(post))
 
@@ -84,10 +94,8 @@ class Scrape():
                 image_key.set_contents_from_string(r.content)
 
         else:
-            # print "Uploading: " + id + " (json only)"
             json_key = self.bucket.new_key(id + '.json')
             json_key.set_contents_from_string(json.dumps(post))
-
 
     def parse_content_urls(self, posts):
         content = []
