@@ -10,7 +10,7 @@ from Queue import Queue
 
 class Scrape():
 
-    def __init__(self, aws_access_key, aws_secret_key, s3_bucket, tumblr_api_key, tag, mean_time=1.0):
+    def __init__(self, aws_access_key, aws_secret_key, s3_bucket, tumblr_api_key, tag, refresh_period=1.0):
 
         self.tumblr_client = pytumblr.TumblrRestClient(tumblr_api_key)
 
@@ -20,7 +20,7 @@ class Scrape():
         self.scraped_ids = set([filename.key[:-5] for filename in self.bucket.get_all_keys() if filename.key[-5:]=='.json'])
 
         self.tag = tag
-        self.mean_time = mean_time
+        self.refresh_period = refresh_period
 
     def input_thread(self):
         raw_input("Press any key to stop")
@@ -47,7 +47,7 @@ class Scrape():
             t=Thread(target=self.get_posts)
             t.start()
             t.join()
-            time.sleep(1.0)
+            time.sleep(self.refresh_period)
             i+=1
 
     def stop(self):
