@@ -13,3 +13,5 @@ def init_config(file='application.ini'):
     except ConfigParser.Error as error:
         logging.critical("Error {error}: Error reading config file {file}.".format(error=error, file=file))
         sys.exit(1)
+
+    return config
