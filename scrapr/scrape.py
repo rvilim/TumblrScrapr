@@ -25,7 +25,7 @@ class Scrape():
         self.scraping = False
 
     def input_thread(self):
-        raw_input("Press any key to stop")
+        raw_input("")
         self.scraping = False
 
     def start(self):
